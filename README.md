@@ -1,73 +1,32 @@
-# PiHost
+# fingerbanker
 
-Read my blog for more info - http://cjdwyer.com/2019/12/18/adding-hostnames-to-pi-hole/
+Full credit goes to [PiHole](https://github.com/Chrus3/PiHost) from which this repo was forked and
+ultimately derived. Was looking to build a somewhat less sophisticated version of what that repo
+provided to allow for automatic logging of devices in a format used by OpenWRT's `/etc/ethers` 
+file on L2 APs.
 
-## Match IP addresses to hostnames in PiHole
+## setup
 
-Pihole is great, but the admin interface only displays device details 
-by IP address which can be confusing. This script changes the display
-from IP address to a more recognizable hostname. And as a bonus, attaches
-the profile (from fingerbank.org) of the device to the hostname as well - 
-so instead of something like 192.168.1.101, you see galaxys6__samsung.
+Your linux host will need `tcpdump` installed.  You'll need to install some python packages used by
+fingerbanker: `urllib3`, `requests`, and `scapy`.
 
-## Setup
+## fingerbank
 
-You'll need to install some python packages for pihost.
+This script queries fingerbank to get a profile of the device based on DHCP and MAC particulars.
+Create your own free account at https://fingerbank.org. Once that's done you'll need to get your
+API key from the 'My Account' section.
 
-    sudo pip3 install pip --upgrade
-    sudo pip3 install python-hosts
-    sudo pip3 install urllib3
-    sudo pip3 install requests
+## API key, INTERFACE value and ethers
 
-And you will also need tcpdump
+Update the `API_KEY` and `INTERFACE` constants as appropriate.  You'll need a framework `ethers`
+file for already known MAC addreses as the script assumes one exists.
 
-    sudo apt-get install tcpdump
+## usage
 
-and then we need scapy
+```bash
+sudo python3 fingerbanker.py
+```
 
-    git clone https://github.com/secdev/scapy
-    cd scapy
-    sudo python3 setup.py install
-
-## API KEY
-
-You will need to update secrets.py with your API Key. Secrets.py contanis one
-line only:
-
-API_KEY = "<Insert your key here>"
-
-You're goning to run into problems without this file / key. You can get your 
-own API KEY from Fingerbank.
-
-### Fingerbank
-
-PiHost will query fingerbank to get a profile of devices on the network.
-This allows us to appent useful info to the device name to help identify
-what we're looking at in the PiHole console. Head on over to fingerbank.org
-and creat a free account. Once that's done you'll need to get your API key
-from the 'My Account' section.
-
-## Usage
-
-sudo python3 pihost.py
-
-This will run pihost in the console. You'll be able to see DHCP queries coming in
-and be able to confirm everything is working as expected.
-
-## Launching PiHost at startup
-
-In order to have a command or program run when the Pi boots, you can add commands
-to the rc.local file. Edit the file /etc/rc.local using the editor of your choice.
-You must edit it with root permissions:
-
-    sudo vi /etc/rc.local
-
-Add the command to launch PiHost at startup. Make sure to use the absolute reference
-to the file.
-
-    sudo python3 /home/pi/pihost.py &
-
-IMPORTANT: Don't forget the '&' at the end. This will fork the process and allow
-booting to continue. Without this the system would wait for this process to
-complete before continuing to boot. Because PiHost keeps looping and never stops
-sniffing for DHCP packets the boot process would be waiting indefinatly.
+If all goes according to plan you'll see no output.  When DHCP queries come if they were not in the
+'known' `ethers` file when the script started, fingerbank will be queried and a new entry written
+to the `ethers_hints` file.  You can `tail -f ethers_hints` to watch the action.
