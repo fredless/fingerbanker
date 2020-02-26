@@ -5,7 +5,6 @@ fingerprinted and logged.  Intended to assist in populating /etc/ethers files us
 """
 
 import json
-import secrets
 
 import datetime
 import requests
@@ -17,7 +16,7 @@ CURRENT_TIME = datetime.datetime.now
 INTERFACE = "eth0"
 FINGERBANK_URL = 'https://api.fingerbank.org/api/v2/combinations/interrogate'
 API_KEY = "<Insert your key here>"
-PARAMS = {'key': secrets.API_KEY}
+PARAMS = {'key': API_KEY}
 ETHERS_FILE = './ethers'
 ETHERS_HINTS = './ethers_hints'
 HEADERS = {'Content-Type': 'application/json'}
